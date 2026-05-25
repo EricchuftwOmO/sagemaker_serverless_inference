@@ -2,6 +2,8 @@
 
 Deploy and benchmark a Hugging Face LLM (`distilgpt2`) on AWS SageMaker Serverless Inference.
 
+> 中文版請見 [README_zh.md](README_zh.md)
+
 ## Overview
 
 | Item | Value |
@@ -17,8 +19,8 @@ Deploy and benchmark a Hugging Face LLM (`distilgpt2`) on AWS SageMaker Serverle
 
 | File | Description |
 |------|-------------|
-| `deploy_serverless_llm.py` | 建立 SageMaker Model、Endpoint Config、Serverless Endpoint，並測試冷啟動與暖機推論 |
-| `invoke_endpoint.py` | 同時送出 5 個請求，分別計時每個推論的回應時間 |
+| `deploy_serverless_llm.py` | Creates SageMaker Model, Endpoint Config, and Serverless Endpoint; runs cold start and warm inference tests |
+| `invoke_endpoint.py` | Sends 5 concurrent requests and measures response time for each |
 
 ## Usage
 
@@ -28,7 +30,7 @@ Deploy and benchmark a Hugging Face LLM (`distilgpt2`) on AWS SageMaker Serverle
 python deploy_serverless_llm.py
 ```
 
-部署約需 5–10 分鐘。完成後會自動執行一次冷啟動測試和一次暖機測試。
+Deployment takes approximately 5–10 minutes. A cold start test and a warm inference test are run automatically upon completion.
 
 ### 2. Concurrent Inference
 
@@ -36,10 +38,10 @@ python deploy_serverless_llm.py
 python invoke_endpoint.py
 ```
 
-同時送出 5 個 prompt，輸出每個請求的回應時間（按完成順序印出）：
+Sends 5 prompts concurrently and prints each response time in completion order. Results are automatically saved to a timestamped `.txt` file.
 
 ```
-同時送出 5 個請求...
+Sending 5 concurrent requests...
 
 [2] 1.65s | Machine learning helps us ...
 [1] 1.73s | The future of AI is ...
@@ -47,24 +49,24 @@ python invoke_endpoint.py
 [5] 1.88s | Natural language processing allows ...
 [4] 20.12s | Deep learning models can ...
 
-總等待時間（最慢那個）: 20.58s
+Total wall time (slowest): 20.58s
 ```
 
-時間差異大的請求代表觸發了新 container 的冷啟動（Max Concurrency = 5，同時打滿時部分請求可能需要等待新 container 啟動）。
+Large time differences indicate a cold start on a new container. With MaxConcurrency=5, sending 5 simultaneous requests may trigger new container launches for some requests.
 
 ## Latency Reference
 
-| 狀態 | 延遲 |
-|------|------|
-| 冷啟動（idle 後第一次） | ~19–21s |
-| 暖機推論 | ~1.7–2s |
+| State | Latency |
+|-------|---------|
+| Cold start (first request after idle) | ~19–21s |
+| Warm inference | ~1.7–2s |
 
-Serverless endpoint 閒置約 5 分鐘後會縮減至零，下次請求會觸發冷啟動。
+Serverless endpoints scale to zero after ~5 minutes of inactivity. The next request will trigger a cold start.
 
 ## Prerequisites
 
-- AWS 帳號，IAM Role 需有 SageMaker 執行權限
-- Python 套件：`boto3`
+- AWS account with an IAM Role that has SageMaker execution permissions
+- Python package: `boto3`
 
 ```bash
 pip install boto3

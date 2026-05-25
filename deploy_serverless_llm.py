@@ -34,7 +34,7 @@ sm.create_endpoint_config(
         "VariantName": "AllTraffic",
         "ModelName": ENDPOINT_NAME,
         "ServerlessConfig": {
-            "MemorySizeInMB": 2048,
+            "MemorySizeInMB": 3072,
             "MaxConcurrency": 5,
         },
     }],

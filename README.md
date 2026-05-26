@@ -1,10 +1,14 @@
-# SageMaker Serverless Inference — distilgpt2
+# AWS LLM Inference — SageMaker Serverless & Amazon Bedrock
 
-Deploy and benchmark a Hugging Face LLM (`distilgpt2`) on AWS SageMaker Serverless Inference.
+Deploy and benchmark LLMs on AWS using SageMaker Serverless Inference and Amazon Bedrock (Custom Model Import).
 
 > 中文版請見 [README_zh.md](README_zh.md)
 
-## Overview
+---
+
+## Part 1: SageMaker Serverless Inference — distilgpt2
+
+### Overview
 
 | Item | Value |
 |------|-------|
@@ -15,16 +19,16 @@ Deploy and benchmark a Hugging Face LLM (`distilgpt2`) on AWS SageMaker Serverle
 | Max Concurrency | 5 |
 | Region | `us-east-2` |
 
-## Files
+### Files
 
 | File | Description |
 |------|-------------|
 | `deploy_serverless_llm.py` | Creates SageMaker Model, Endpoint Config, and Serverless Endpoint; runs cold start and warm inference tests |
 | `invoke_endpoint.py` | Sends 5 concurrent requests and measures response time for each |
 
-## Usage
+### Usage
 
-### 1. Deploy
+#### 1. Deploy
 
 ```bash
 python deploy_serverless_llm.py
@@ -32,7 +36,7 @@ python deploy_serverless_llm.py
 
 Deployment takes approximately 5–10 minutes. A cold start test and a warm inference test are run automatically upon completion.
 
-### 2. Concurrent Inference
+#### 2. Concurrent Inference
 
 ```bash
 python invoke_endpoint.py
@@ -52,22 +56,75 @@ Sending 5 concurrent requests...
 Total wall time (slowest): 20.58s
 ```
 
-Large time differences indicate a cold start on a new container. With MaxConcurrency=5, sending 5 simultaneous requests may trigger new container launches for some requests.
-
-## Latency Reference
+### Latency Reference
 
 | State | Latency |
 |-------|---------|
 | Cold start (first request after idle) | ~19–21s |
 | Warm inference | ~1.7–2s |
 
-Serverless endpoints scale to zero after ~5 minutes of inactivity. The next request will trigger a cold start.
+---
+
+## Part 2: Amazon Bedrock — Llama 3.1 8B Instruct
+
+Import a custom model from S3 into Amazon Bedrock and invoke it via API.
+
+### Overview
+
+| Item | Value |
+|------|-------|
+| Model | `meta-llama/Llama-3.1-8B-Instruct` |
+| Task | Chat / Text Generation |
+| Service | Amazon Bedrock (Custom Model Import) |
+| Region | `us-east-2` |
+
+### Files
+
+| File | Description |
+|------|-------------|
+| `invoke_bedrock_llama.py` | Invokes the imported Llama model on Bedrock, retries every 15s up to 10 minutes, and logs cold start time and inference time to a `.txt` file |
+
+### Setup
+
+1. Download model from Hugging Face and upload to S3:
+```bash
+huggingface-cli login
+python -c "
+from huggingface_hub import snapshot_download
+snapshot_download('meta-llama/Llama-3.1-8B-Instruct', local_dir='/tmp/llama-instruct')
+"
+aws s3 sync /tmp/llama-instruct s3://your-bucket/llama-3.1-8b-instruct/
+```
+
+2. Import model in Bedrock Console → Imported models → Import model
+   - Source: `s3://your-bucket/llama-3.1-8b-instruct/`
+   - Service role must have `s3:GetObject` and `s3:ListBucket` on the bucket
+
+3. Update `modelId` in `invoke_bedrock_llama.py` with your imported model ARN
+
+### Usage
+
+```bash
+python invoke_bedrock_llama.py
+```
+
+Retries every 15 seconds (up to 10 minutes) until the model is ready, then invokes it and saves results to a timestamped log file.
+
+### Latency Reference
+
+| State | Latency |
+|-------|---------|
+| Cold start (model not ready) | ~4–7 min |
+| Warm inference | ~0.6–1.3s |
+
+---
 
 ## Prerequisites
 
-- AWS account with an IAM Role that has SageMaker execution permissions
-- Python package: `boto3`
+- AWS account with IAM roles for SageMaker and Bedrock
+- Hugging Face account with access to Llama 3.1
+- Python package: `boto3`, `huggingface_hub`
 
 ```bash
-pip install boto3
+pip install boto3 huggingface_hub
 ```

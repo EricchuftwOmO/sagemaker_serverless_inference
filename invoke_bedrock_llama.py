@@ -1,7 +1,10 @@
 import boto3
 import json
+import sys
 import time
 from datetime import datetime
+
+sys.stdout.reconfigure(encoding="utf-8")
 
 client = boto3.client("bedrock-runtime", region_name="us-east-2")
 log_file = f"invoke_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
@@ -9,7 +12,7 @@ max_attempts = 40  # 40 * 15s = 600s = 10 minutes
 
 script_start = time.time()
 
-with open(log_file, "w") as f:
+with open(log_file, "w", encoding="utf-8") as f:
     f.write(f"Start time: {datetime.now()}\n\n")
 
 for attempt in range(max_attempts):
@@ -36,7 +39,7 @@ for attempt in range(max_attempts):
         print(f"\nCold start time: {cold_start:.1f}s")
         print(f"Inference time: {elapsed:.2f}s")
 
-        with open(log_file, "a") as f:
+        with open(log_file, "a", encoding="utf-8") as f:
             f.write(f"Success time: {datetime.now()}\n")
             f.write(f"Cold start time: {cold_start:.1f}s\n")
             f.write(f"Inference time: {elapsed:.2f}s\n\n")
@@ -46,7 +49,7 @@ for attempt in range(max_attempts):
     except client.exceptions.ModelNotReadyException:
         msg = f"[{attempt+1}/{max_attempts}] Model not ready, retrying in 15s..."
         print(msg)
-        with open(log_file, "a") as f:
+        with open(log_file, "a", encoding="utf-8") as f:
             f.write(msg + "\n")
         time.sleep(15)
 else:

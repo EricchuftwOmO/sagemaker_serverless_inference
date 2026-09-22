@@ -30,7 +30,10 @@ Deploy and benchmark LLMs on AWS using SageMaker Serverless Inference and Amazon
 
 #### 1. Deploy
 
+Set the SageMaker execution role ARN for your account (must have SageMaker permissions):
+
 ```bash
+export SAGEMAKER_EXECUTION_ROLE_ARN="arn:aws:iam::<your-account-id>:role/service-role/<your-role>"
 python deploy_serverless_llm.py
 ```
 
@@ -100,11 +103,12 @@ aws s3 sync /tmp/llama-instruct s3://your-bucket/llama-3.1-8b-instruct/
    - Source: `s3://your-bucket/llama-3.1-8b-instruct/`
    - Service role must have `s3:GetObject` and `s3:ListBucket` on the bucket
 
-3. Update `modelId` in `invoke_bedrock_llama.py` with your imported model ARN
+3. Note your imported model's ARN
 
 ### Usage
 
 ```bash
+export BEDROCK_MODEL_ARN="arn:aws:bedrock:us-east-2:<your-account-id>:imported-model/<your-model-id>"
 python invoke_bedrock_llama.py
 ```
 

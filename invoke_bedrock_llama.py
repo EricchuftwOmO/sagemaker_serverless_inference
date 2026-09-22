@@ -1,10 +1,13 @@
 import boto3
 import json
+import os
 import sys
 import time
 from datetime import datetime
 
 sys.stdout.reconfigure(encoding="utf-8")
+
+MODEL_ARN = os.environ["BEDROCK_MODEL_ARN"]
 
 client = boto3.client("bedrock-runtime", region_name="us-east-2")
 log_file = f"invoke_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
@@ -19,7 +22,7 @@ for attempt in range(max_attempts):
     try:
         start = time.time()
         response = client.invoke_model(
-            modelId="arn:aws:bedrock:us-east-2:700694288831:imported-model/39d4gt3a4z74",
+            modelId=MODEL_ARN,
             body=json.dumps({
                 "messages": [{"role": "user", "content": "Tell me a joke"}],
                 "max_gen_len": 512,

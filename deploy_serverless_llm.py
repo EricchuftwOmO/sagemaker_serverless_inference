@@ -1,8 +1,9 @@
 import boto3
 import json
+import os
 import time
 
-ROLE = "arn:aws:iam::700694288831:role/service-role/AmazonSageMakerAdminIAMExecutionRole"
+ROLE = os.environ["SAGEMAKER_EXECUTION_ROLE_ARN"]
 REGION = "us-east-2"
 ENDPOINT_NAME = "distilgpt2-serverless"
 

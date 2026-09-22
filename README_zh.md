@@ -30,7 +30,10 @@
 
 #### 1. 部署
 
+先設定你帳號的 SageMaker 執行角色 ARN（需具備 SageMaker 權限）：
+
 ```bash
+export SAGEMAKER_EXECUTION_ROLE_ARN="arn:aws:iam::<你的帳號ID>:role/service-role/<你的角色>"
 python deploy_serverless_llm.py
 ```
 
@@ -100,11 +103,12 @@ aws s3 sync /tmp/llama-instruct s3://your-bucket/llama-3.1-8b-instruct/
    - Source：`s3://your-bucket/llama-3.1-8b-instruct/`
    - Service role 需有該 bucket 的 `s3:GetObject` 和 `s3:ListBucket` 權限
 
-3. 將 `invoke_bedrock_llama.py` 中的 `modelId` 更新為你的模型 ARN
+3. 記下你匯入模型的 ARN
 
 ### 使用方式
 
 ```bash
+export BEDROCK_MODEL_ARN="arn:aws:bedrock:us-east-2:<你的帳號ID>:imported-model/<你的模型ID>"
 python invoke_bedrock_llama.py
 ```
 
